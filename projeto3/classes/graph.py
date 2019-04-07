@@ -2,7 +2,7 @@ class Graph :
     def __init__(self) :
         self.nodes = []
     
-    def addNode(self, node) :
+    def add_node(self, node) :
         self.nodes.append(node)
     
     def getNodes(self) :
@@ -10,10 +10,15 @@ class Graph :
     
     def getInitial(self) :
         for n in self.nodes :
-            if n.category == 'initial' :
+            if n.category == 'initial':
                 return n
 
     def getFinal(self) :
         for n in self.nodes :
-            if n.category == 'final' :
+            if n.category == 'final':
+                return n
+
+    def get_node_by_name(self, name):
+        for n in self.nodes:
+            if name == n.name:
                 return n
