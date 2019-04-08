@@ -37,21 +37,14 @@ def main():
 def afe_to_afd(graph, reg_exp):
     global count_afd
     afd_graph = Graph()
-    initial_node = Node(graph.getInitial().getName(), 'initial')
+    initial_node = Node(graph.get_initial().getName(), 'initial')
     count_afd += 1
     afd_graph.add_node(initial_node)
 
-    do_afd(afd_graph, graph, graph.getInitial(), afd_graph.getInitial())
+    do_afd(afd_graph, graph, graph.get_initial(), afd_graph.get_initial())
 
-    for n in graph.getNodes():
-        for e in n.getEdges():
-            print("{} -> {} -> {}".format(e.src.name, e.variable, e.tgt.name))
-
-    print(" ------------------------------- ")
-
-    for n in afd_graph.getNodes():
-        for e in n.getEdges():
-            print("{} -> {} -> {}".format(e.src.name, e.variable, e.tgt.name))
+    print_graph(graph, 'AFE')
+    print_graph(afd_graph, 'AFD')
 
     plot(afd_graph, reg_exp)
 

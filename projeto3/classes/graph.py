@@ -1,20 +1,20 @@
-class Graph :
-    def __init__(self) :
+class Graph:
+    def __init__(self):
         self.nodes = []
     
-    def add_node(self, node) :
+    def add_node(self, node):
         self.nodes.append(node)
     
-    def getNodes(self) :
+    def get_nodes(self):
         return self.nodes
     
-    def getInitial(self) :
-        for n in self.nodes :
+    def get_initial(self):
+        for n in self.nodes:
             if n.category == 'initial':
                 return n
 
-    def getFinal(self) :
-        for n in self.nodes :
+    def get_final(self):
+        for n in self.nodes:
             if n.category == 'final':
                 return n
 

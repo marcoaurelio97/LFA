@@ -117,7 +117,6 @@ def plot(graph, title='figura1'):
 
     for n in graph.getNodes():
         for e in n.getEdges():
-            print("{} -> {} -> {}".format(e.src.name, e.variable, e.tgt.name))
             g.add_edge(e.src.name, e.tgt.name)
             edge_labels[(e.src.name, e.tgt.name)] = e.variable
 
@@ -234,3 +233,12 @@ def get_copy_graph(graph):
     for n in graph.getNodes():
         node = Node(n.name, n.category)
         copy.add_node(node)
+
+
+def print_graph(graph, name):
+    print('--- {} ---'.format(name))
+
+    for n in graph.getNodes():
+        for e in n.getEdges():
+            print("{}({}) -> {} -> {}({})".format(e.src.name, e.src.category, e.variable, e.tgt.name, e.tgt.category))
+    print('')
