@@ -1,7 +1,5 @@
 from functions import *
 
-count_afd = 1
-
 
 def main():
     operators = ['(', ')', '+', '*', '|', '.']
@@ -35,10 +33,8 @@ def main():
 
 
 def afe_to_afd(graph, reg_exp):
-    global count_afd
     afd_graph = Graph()
-    initial_node = Node(graph.get_initial().getName(), 'initial')
-    count_afd += 1
+    initial_node = Node(graph.get_initial().name, 'initial')
     afd_graph.add_node(initial_node)
 
     do_afd(afd_graph, graph, graph.get_initial(), afd_graph.get_initial())
@@ -50,21 +46,18 @@ def afe_to_afd(graph, reg_exp):
 
 
 def do_afd(afd_graph, original_graph, node_from_original, node_from_afd):
-    global count_afd
-
-    if not node_from_original.getEdges():
+    if not node_from_original.edges:
         node_from_afd.category = 'final'
 
-    for e in node_from_original.getEdges():
-        if e.variable == 'ε':
+    for e in node_from_original.edges:
+        if e.variable == EMPTY_STATE:
             do_afd(afd_graph, original_graph, e.tgt, node_from_afd)
         else:
             if afd_graph.verify_exist(e.tgt.name):
-                node_from_afd.addEdge(Edge(node_from_afd, e.tgt, e.variable))
+                node_from_afd.add_edge(Edge(node_from_afd, e.tgt, e.variable))
             else:
-                n = Node(e.tgt.getName(), 'incremental')
-                count_afd += 1
-                node_from_afd.addEdge(Edge(node_from_afd, n, e.variable))
+                n = Node(e.tgt.name, 'incremental')
+                node_from_afd.add_edge(Edge(node_from_afd, n, e.variable))
                 afd_graph.add_node(n)
 
                 do_afd(afd_graph, original_graph, e.tgt, n)

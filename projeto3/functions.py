@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
 count = 1
+EMPTY_STATE = 'ε'
 
 
 def convert(exp):
@@ -20,23 +21,23 @@ def convert(exp):
         if c == '+' or c == '.' or c == '*' or c == '|':
             pr = priority(c)
 
-            while (not s.Empty()) and (priority(s.Top()) >= pr):
-                posfixa += s.Pop()
+            while (not s.empty()) and (priority(s.top()) >= pr):
+                posfixa += s.pop()
 
-            s.Push(c)
+            s.push(c)
 
         if c == '(':
-            s.Push(c)
+            s.push(c)
 
         if c == ')':
-            x = s.Pop()
+            x = s.pop()
 
             while x != '(':
                 posfixa += x
-                x = s.Pop()
+                x = s.pop()
 
-    while not s.Empty():
-        x = s.Pop()
+    while not s.empty():
+        x = s.pop()
         posfixa += x
 
     return posfixa
@@ -59,22 +60,22 @@ def calculate(posfixa):
     for c in posfixa:
         if ('A' <= c <= 'Z') or ('a' <= c <= 'z'):
             x = get_graph_letter(c)
-            s.Push(x)
+            s.push(x)
         else:
             if c == '+':
-                x = s.Pop()
-                s.Push(get_plus(x))
+                x = s.pop()
+                s.push(get_plus(x))
             elif c == '.':
-                y = s.Pop()
-                x = s.Pop()
-                s.Push(get_point(x, y))
+                y = s.pop()
+                x = s.pop()
+                s.push(get_point(x, y))
             elif c == '*':
-                x = s.Pop()
-                s.Push(get_cline(x))
+                x = s.pop()
+                s.push(get_cline(x))
             elif c == '|':
-                y = s.Pop()
-                x = s.Pop()
-                s.Push(get_or(x, y))
+                y = s.pop()
+                x = s.pop()
+                s.push(get_or(x, y))
 
     return x
 
@@ -82,18 +83,18 @@ def calculate(posfixa):
 def get_initial_final(graph):
     global count
 
-    initial = graph.getInitial()
+    initial = graph.get_initial()
     initial.category = 'incremental'
 
-    final = graph.getFinal()
+    final = graph.get_final()
     final.category = 'incremental'
 
     node_initial = Node(count, 'initial')
     count += 1
-    node_initial.addEdge(Edge(node_initial, initial, 'ε'))
+    node_initial.add_edge(Edge(node_initial, initial, EMPTY_STATE))
     node_final = Node(count, 'final')
     count += 1
-    final.addEdge(Edge(final, node_final, 'ε'))
+    final.add_edge(Edge(final, node_final, EMPTY_STATE))
 
     graph.add_node(node_initial)
     graph.add_node(node_final)
@@ -106,7 +107,7 @@ def plot(graph, title='figura1'):
     edge_labels = dict()
     color_map = []
 
-    for n in graph.getNodes():
+    for n in graph.nodes:
         if n.category == 'initial':
             color_map.append('g')
         elif n.category == 'final':
@@ -115,39 +116,40 @@ def plot(graph, title='figura1'):
             color_map.append('b')
         g.add_node(n.name)
 
-    for n in graph.getNodes():
-        for e in n.getEdges():
+    for n in graph.nodes:
+        for e in n.edges:
             g.add_edge(e.src.name, e.tgt.name)
             edge_labels[(e.src.name, e.tgt.name)] = e.variable
 
     pos = nx.shell_layout(g)
     nx.draw(g, pos, with_labels=True, arrows=True, arrowsize=5, node_color=color_map, node_size=400, font_size=10)
     nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels)
-    blue = mpatches.Patch(color='g', label='Initial State')
+    green = mpatches.Patch(color='g', label='Initial State')
     red = mpatches.Patch(color='r', label='Final State')
-    plt.legend(handles=[blue, red])
+    blue = mpatches.Patch(color='b', label='Incremental')
+    plt.legend(handles=[green, red, blue])
     plt.title(title)
     plt.show()
 
 
 def get_plus(x):
-    node_xinitial = x.getInitial()
-    node_xfinal = x.getFinal()
+    node_xinitial = x.get_initial()
+    node_xfinal = x.get_final()
 
-    node_xfinal.addEdge(Edge(node_xfinal, node_xinitial, 'ε'))
+    node_xfinal.add_edge(Edge(node_xfinal, node_xinitial, EMPTY_STATE))
 
     return get_initial_final(x)
 
 
 def get_point(x, y):
-    node_xfinal = x.getFinal()
-    node_yinitial = y.getInitial()
+    node_xfinal = x.get_final()
+    node_yinitial = y.get_initial()
 
     node_xfinal.category = 'incremental'
-    node_xfinal.addEdge(Edge(node_xfinal, node_yinitial, 'ε'))
+    node_xfinal.add_edge(Edge(node_xfinal, node_yinitial, EMPTY_STATE))
     node_yinitial.category = 'incremental'
 
-    for yn in y.getNodes():
+    for yn in y.nodes:
         x.add_node(yn)
 
     return get_initial_final(x)
@@ -155,21 +157,21 @@ def get_point(x, y):
 
 def get_cline(x):
     global count
-    node_xinitial = x.getInitial()
+    node_xinitial = x.get_initial()
     node_xinitial.category = 'incremental'
-    node_xfinal = x.getFinal()
+    node_xfinal = x.get_final()
     node_xfinal.category = 'incremental'
 
-    node_xfinal.addEdge(Edge(node_xfinal, node_xinitial, 'ε'))
+    node_xfinal.add_edge(Edge(node_xfinal, node_xinitial, EMPTY_STATE))
 
     node_initial = Node(count, 'initial')
     count += 1
     node_final = Node(count, 'final')
     count += 1
 
-    node_initial.addEdge(Edge(node_initial, node_xinitial, 'ε'))
-    node_initial.addEdge(Edge(node_initial, node_final, 'ε'))
-    node_xfinal.addEdge(Edge(node_xfinal, node_final, 'ε'))
+    node_initial.add_edge(Edge(node_initial, node_xinitial, EMPTY_STATE))
+    node_initial.add_edge(Edge(node_initial, node_final, EMPTY_STATE))
+    node_xfinal.add_edge(Edge(node_xfinal, node_final, EMPTY_STATE))
 
     x.add_node(node_initial)
     x.add_node(node_final)
@@ -179,18 +181,18 @@ def get_cline(x):
 
 def get_or(x, y):
     global count
-    node_xinitial = x.getInitial()
-    node_xfinal = x.getFinal()
+    node_xinitial = x.get_initial()
+    node_xfinal = x.get_final()
 
-    node_yinitial = y.getInitial()
-    node_yfinal = y.getFinal()
+    node_yinitial = y.get_initial()
+    node_yfinal = y.get_final()
 
     node_xinitial.category = 'incremental'
     node_xfinal.category = 'incremental'
     node_yinitial.category = 'incremental'
     node_yfinal.category = 'incremental'
 
-    for y in y.getNodes():
+    for y in y.nodes:
         x.add_node(y)
 
     node_initial = Node(count, 'initial')
@@ -198,11 +200,11 @@ def get_or(x, y):
     node_final = Node(count, 'final')
     count += 1
 
-    node_initial.addEdge(Edge(node_initial, node_xinitial, 'ε'))
-    node_initial.addEdge(Edge(node_initial, node_yinitial, 'ε'))
+    node_initial.add_edge(Edge(node_initial, node_xinitial, EMPTY_STATE))
+    node_initial.add_edge(Edge(node_initial, node_yinitial, EMPTY_STATE))
 
-    node_xfinal.addEdge(Edge(node_xfinal, node_final, 'ε'))
-    node_yfinal.addEdge(Edge(node_yfinal, node_final, 'ε'))
+    node_xfinal.add_edge(Edge(node_xfinal, node_final, EMPTY_STATE))
+    node_yfinal.add_edge(Edge(node_yfinal, node_final, EMPTY_STATE))
 
     x.add_node(node_initial)
     x.add_node(node_final)
@@ -219,7 +221,7 @@ def get_graph_letter(letter):
     node2 = Node(count, 'final')
     count += 1
 
-    node1.addEdge(Edge(node1, node2, letter))
+    node1.add_edge(Edge(node1, node2, letter))
 
     graph.add_node(node1)
     graph.add_node(node2)
@@ -230,7 +232,7 @@ def get_graph_letter(letter):
 def get_copy_graph(graph):
     copy = Graph()
 
-    for n in graph.getNodes():
+    for n in graph.nodes:
         node = Node(n.name, n.category)
         copy.add_node(node)
 
@@ -238,7 +240,7 @@ def get_copy_graph(graph):
 def print_graph(graph, name):
     print('--- {} ---'.format(name))
 
-    for n in graph.getNodes():
-        for e in n.getEdges():
+    for n in graph.nodes:
+        for e in n.edges:
             print("{}({}) -> {} -> {}({})".format(e.src.name, e.src.category, e.variable, e.tgt.name, e.tgt.category))
     print('')

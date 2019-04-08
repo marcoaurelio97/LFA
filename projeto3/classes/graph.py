@@ -5,9 +5,6 @@ class Graph:
     def add_node(self, node):
         self.nodes.append(node)
     
-    def get_nodes(self):
-        return self.nodes
-    
     def get_initial(self):
         for n in self.nodes:
             if n.category == 'initial':
