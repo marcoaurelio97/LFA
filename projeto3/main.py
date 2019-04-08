@@ -31,14 +31,13 @@ def main():
     str_posfixa = convert(reg_exp)
     print("Posfixa: {}".format(str_posfixa))
     graph = calculate(str_posfixa)
-    afe_to_afd(graph,reg_exp)
-    # plot(graph)
+    afe_to_afd(graph, reg_exp)
 
 
-def afe_to_afd(graph,reg_exp):
+def afe_to_afd(graph, reg_exp):
     global count_afd
     afd_graph = Graph()
-    initial_node = Node(count_afd, 'initial')
+    initial_node = Node(graph.getInitial().getName(), 'initial')
     count_afd += 1
     afd_graph.add_node(initial_node)
 
@@ -49,6 +48,10 @@ def afe_to_afd(graph,reg_exp):
             print("{} -> {} -> {}".format(e.src.name, e.variable, e.tgt.name))
 
     print(" ------------------------------- ")
+
+    for n in afd_graph.getNodes():
+        for e in n.getEdges():
+            print("{} -> {} -> {}".format(e.src.name, e.variable, e.tgt.name))
 
     plot(afd_graph, reg_exp)
 
@@ -63,12 +66,15 @@ def do_afd(afd_graph, original_graph, node_from_original, node_from_afd):
         if e.variable == 'ε':
             do_afd(afd_graph, original_graph, e.tgt, node_from_afd)
         else:
-            n = Node(count_afd, 'incremental')
-            count_afd += 1
-            node_from_afd.addEdge(Edge(node_from_afd, n, e.variable))
-            afd_graph.add_node(n)
+            if afd_graph.verify_exist(e.tgt.name):
+                node_from_afd.addEdge(Edge(node_from_afd, e.tgt, e.variable))
+            else:
+                n = Node(e.tgt.getName(), 'incremental')
+                count_afd += 1
+                node_from_afd.addEdge(Edge(node_from_afd, n, e.variable))
+                afd_graph.add_node(n)
 
-            do_afd(afd_graph, original_graph, e.tgt, n)
+                do_afd(afd_graph, original_graph, e.tgt, n)
 
 
 if __name__ == "__main__":

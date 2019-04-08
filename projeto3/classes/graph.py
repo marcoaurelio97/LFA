@@ -22,3 +22,9 @@ class Graph :
         for n in self.nodes:
             if name == n.name:
                 return n
+
+    def verify_exist(self, name):
+        for n in self.nodes:
+            if name == n.name:
+                return True
+        return False

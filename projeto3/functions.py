@@ -127,8 +127,8 @@ def plot(graph, title='figura1'):
     blue = mpatches.Patch(color='g', label='Initial State')
     red = mpatches.Patch(color='r', label='Final State')
     plt.legend(handles=[blue, red])
-    plt.show()
     plt.title(title)
+    plt.show()
 
 
 def get_plus(x):

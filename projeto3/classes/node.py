@@ -1,14 +1,15 @@
-class Node :
-    def __init__(self, name, category) :
+class Node:
+    def __init__(self, name, category):
         self.name = name
         self.category = category
         self.edges = []
+        self.visited = False
     
-    def addEdge(self, edge) :
+    def addEdge(self, edge):
         self.edges.append(edge)
     
-    def getEdges(self) :
+    def getEdges(self):
         return self.edges
     
-    def getName(self) :
+    def getName(self):
         return self.name
