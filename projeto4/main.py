@@ -7,7 +7,7 @@ def main():
 
     while True:
         # reg_exp = input("Digite a expressão regular: ")
-        reg_exp = "(a|b).c"
+        reg_exp = "a.b"
 
         if reg_exp == "":
             print("Digite uma expressão regular válida!")
@@ -32,7 +32,7 @@ def main():
     str_posfixa = convert(reg_exp)
     print("Posfixa: {}".format(str_posfixa))
     graph = calculate(str_posfixa)
-    afd_graph = afe_to_afd(graph, reg_exp)
+    afd_graph = afe_to_afd(graph)
     minimize_afd(afd_graph, alphabet)
 
 
@@ -44,7 +44,7 @@ def get_alphabet(reg_exp):
     return alphabet
 
 
-def afe_to_afd(graph, reg_exp):
+def afe_to_afd(graph):
     afd_graph = Graph()
     initial_node = Node(graph.get_initial().name, 'initial')
     afd_graph.add_node(initial_node)
@@ -54,7 +54,7 @@ def afe_to_afd(graph, reg_exp):
     print_graph(graph, 'AFE')
     print_graph(afd_graph, 'AFD')
 
-    plot(afd_graph, reg_exp)
+    plot(afd_graph)
 
     return afd_graph
 
@@ -79,52 +79,54 @@ def do_afd(afd_graph, original_graph, node_from_original, node_from_afd):
 
 def minimize_afd(afd_graph, alphabet):
     complete_graph(afd_graph, alphabet)
-    print_graph(afd_graph, 'aasdfasdf')
+    print_graph(afd_graph, 'PRE MINIMIZED')
     similars = get_similars(afd_graph)
 
-    # print(similars)
+    print_similars(similars, "COMPLETO")
+
     for s in similars:
-        print("[" + str(s.node1.name) + "," + str(s.node2.name) + "]")
+        node_from_1 = afd_graph.get_node_by_name(s.name1)
+        node_from_2 = afd_graph.get_node_by_name(s.name2)
 
-    # plot(afd_graph, 'teste')
+        for a in alphabet:
+            node_to_1 = node_from_1.verify_letter_exists(a)
+            node_to_2 = node_from_2.verify_letter_exists(a)
 
-    # analysis = []
-    #
-    # for s in similars:
-    #     node_from_1 = afd_graph.get_node_by_name(s[0])
-    #     node_from_2 = afd_graph.get_node_by_name(s[1])
-    #
-    #     for a in alphabet:
-    #         node_to_1 = node_from_1.verify_letter_exists(a)
-    #         node_to_2 = node_from_2.verify_letter_exists(a)
-    #
-    #         if node_to_1 and node_to_2:
-    #             # if [node_to_1.name, node_to_2.name] not in similars \
-    #             #         and [node_to_2.name, node_to_1.name] not in similars\
-    #             #         and s in similars:
-    #             #     similars.remove(s)
-    #             if node_to_1 != node_to_2 and ([node_to_1, node_to_2] in similars\
-    #                     or [node_to_2, node_to_1] in similars):
-    #                 analysis = []
-    #
-    # print(similars)
+            similar_pair = find_similar(similars, node_to_1.name, node_to_2.name)
+
+            if node_to_1.name == node_to_2.name:
+                continue
+            elif similar_pair:
+                s.dependencies.append(Similar(similar_pair.name1, similar_pair.name2))
+            else:
+                s.marked = True
+                verify_dependencies(similars)
+
+    print_similars(similars, "VALIDS")
+
+    build_minimized_graph(afd_graph, similars)
+    plot(afd_graph)
 
 
 def complete_graph(afd_graph, alphabet):
-    node_name = 100
+    new_node = Node("D", "extra")
+
+    add_node = False
+
+    for letter in alphabet:
+        new_node.add_edge(Edge(new_node, new_node, letter))
+
     for a in alphabet:
         for n in afd_graph.nodes:
             if not n.verify_letter_exists(a) and n.category not in ["final", "extra"] and not n.visited:
-                new_node = Node(node_name, "extra")
+                add_node = True
                 n.add_edge(Edge(n, new_node, a))
-                afd_graph.add_node(new_node)
-                node_name += 1
                 new_node.visited = True
-
-                for letter in alphabet:
-                    new_node.add_edge(Edge(new_node, new_node, letter))
             n.visited = True
         afd_graph.clear_visited()
+
+    if add_node:
+        afd_graph.add_node(new_node)
 
 
 def get_similars(afd_graph):
@@ -134,10 +136,50 @@ def get_similars(afd_graph):
             if n1.name is not n2.name:
                 if n1.category != "final"\
                         and n2.category != "final"\
-                        and Similar(n1, n2) not in similars\
-                        and Similar(n2, n1) not in similars:
-                    similars.append(Similar(n1, n2))
+                        and not find_similar(similars, n1.name, n2.name):
+                    similars.append(Similar(n1.name, n2.name))
     return similars
+
+
+def find_similar(similars, name1, name2):
+    for s in similars:
+        if (s.name1 == name1 and s.name2 == name2) or (s.name1 == name2 and s.name2 == name1):
+            return s
+    return False
+
+
+def print_similars(similars, name):
+    print(name + ": " + str(len(similars)))
+    for s in similars:
+        print("[" + str(s.name1) + "," + str(s.name2) + "]")
+    print("\n")
+
+
+def verify_dependencies(similars):
+    for s in similars:
+        if s.marked:
+            for x in similars:
+                if s.name1 == x.name1 and s.name2 == x.name2:
+                    continue
+                else:
+                    for d in x.dependencies:
+                        if d.name1 == s.name1 and d.name2 == s.name2:
+                            x.marked = True
+
+    for s in similars:
+        if s.marked:
+            similars.remove(s)
+
+
+def build_minimized_graph(afd_graph, similars):
+    graph = Graph()
+
+    for s in similars:
+        node1 = afd_graph.get_node_by_name(s.name1)
+        node2 = afd_graph.get_node_by_name(s.name2)
+
+        if node1.category == "final" and node2.category == "final":
+            new_node = Node(s.name1 + "-" + s.name2)
 
 
 if __name__ == "__main__":

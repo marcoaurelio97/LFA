@@ -1,6 +1,6 @@
 class Similar:
-    def __init__(self, node1, node2):
-        self.node1 = node1
-        self.node2 = node2
+    def __init__(self, name1, name2):
+        self.name1 = name1
+        self.name2 = name2
         self.marked = False
         self.dependencies = []
